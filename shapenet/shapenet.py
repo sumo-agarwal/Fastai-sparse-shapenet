@@ -36,7 +36,7 @@ from fastai_sparse.callbacks import TimeLogger, SaveModelCallback, CSVLogger, CS
 from metrics import IouByCategories
 from fastai_sparse.core import num_cpus
 
-experiment_name = 'unet_24_detailed'
+experiment_name = 'shapenet'
 SOURCE_DIR = Path('data').expanduser()
 DIR_TRAIN_VAL = SOURCE_DIR / 'train_val'
 categories = [
