@@ -113,12 +113,6 @@ data = SparseDataBunch.create(train_ds=train_items,
                               valid_ds=valid_items,
                               collate_fn=merge_fn,)
 
-t = tqdm(enumerate(data.train_dl), total=len(data.train_dl))
-for i, batch in t:
-    pass
-t = tqdm(enumerate(data.valid_dl), total=len(data.valid_dl))
-for i, batch in t:
-    pass
 model_config = SparseModelConfig(spatial_size=24 * 8, num_input_features=1)
 model_config.check_accordance(data.train_ds.source_config, sparse_item=data.train_ds[0])
 class Model(nn.Module):
