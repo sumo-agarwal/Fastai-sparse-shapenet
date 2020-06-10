@@ -34,6 +34,7 @@ from fastai.callbacks.general_sched import TrainingPhase, GeneralScheduler
 from fastai.callback import annealing_exp
 from fastai_sparse.callbacks import TimeLogger, SaveModelCallback, CSVLogger, CSVLoggerIouByCategory
 from metrics import IouByCategories
+from fastai_sparse.core import num_cpus
 
 experiment_name = 'unet_24_detailed'
 SOURCE_DIR = Path('data').expanduser()
@@ -51,10 +52,6 @@ classes = [
 ]
 
 num_classes_by_category = [4, 2, 2, 4, 4, 3, 3, 2, 4, 2, 6, 2, 3, 3, 3, 3]
-assert len(categories) == len(classes)
-
-print("Number of categories:", len(categories))
-
 df_train = find_files(path=SOURCE_DIR / 'npy' / 'train', ext='.points.npy', ext_labels='.labels.npy', categories=categories)
 df_valid = find_files(path=SOURCE_DIR / 'npy' / 'valid', ext='.points.npy', ext_labels='.labels.npy', categories=categories)
 train_source_config = DataSourceConfig(                                       
@@ -116,11 +113,6 @@ data = SparseDataBunch.create(train_ds=train_items,
                               valid_ds=valid_items,
                               collate_fn=merge_fn,)
 
-data.describe()
-from fastai_sparse.core import num_cpus
-print("num_cpus:", num_cpus())
-!lscpu | grep "Model"
-print()
 t = tqdm(enumerate(data.train_dl), total=len(data.train_dl))
 for i, batch in t:
     pass
@@ -129,7 +121,6 @@ for i, batch in t:
     pass
 model_config = SparseModelConfig(spatial_size=24 * 8, num_input_features=1)
 model_config.check_accordance(data.train_ds.source_config, sparse_item=data.train_ds[0])
-model_config
 class Model(nn.Module):
     def __init__(self, cfg):
         nn.Module.__init__(self)
@@ -155,7 +146,6 @@ class Model(nn.Module):
         return x
 
 model = Model(model_config)
-model
 learn = Learner(data, model,
                 opt_func=partial(optim.SGD, momentum=0.9),
                 wd=1e-4,
@@ -168,9 +158,5 @@ learn.callbacks.append(cb_iou)
 learn.callbacks.append(TimeLogger(learn))
 learn.callbacks.append(CSVLogger(learn))
 learn.callbacks.append(CSVLoggerIouByCategory(learn, cb_iou, categories_names=classes))
-
 learn.callbacks.append(SaveModelCallback(learn, every='epoch', name='weights', overwrite=True))
 learn.fit(10)
-learn.find_callback('CSVLoggerIouByCategory').read_logged_file().tail()
-learn.find_callback('CSVLogger').read_logged_file().tail()
-learn.recorder.plot_losses()
